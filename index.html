@@ -1,0 +1,2198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2026 NFL Mock Draft Simulator — Round 1 Powered by the RealJD™</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap");
+
+      :root {
+        --bg: #0a0c10;
+        --surface: #111318;
+        --surface2: #1a1d24;
+        --border: #252830;
+        --gold: #f5c842;
+        --gold2: #e6a800;
+        --green: #22c55e;
+        --red: #ef4444;
+        --blue: #3b82f6;
+        --text: #e8eaf0;
+        --muted: #6b7280;
+        --dim: #9ca3af;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "IBM Plex Sans", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        font-size: 14px;
+      }
+
+      /* ── HEADER ── */
+      header {
+        background: var(--surface);
+        border-bottom: 2px solid var(--gold);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .logo {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 28px;
+        letter-spacing: 2px;
+        color: var(--gold);
+        line-height: 1;
+      }
+      .logo span {
+        color: var(--text);
+      }
+      .pick-counter {
+        margin-left: auto;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 18px;
+        color: var(--muted);
+        letter-spacing: 1px;
+      }
+      .pick-counter b {
+        color: var(--gold);
+        font-size: 22px;
+      }
+
+      /* ── PROGRESS BAR ── */
+      #progress-bar {
+        height: 3px;
+        background: var(--border);
+        position: sticky;
+        top: 64px;
+        z-index: 99;
+      }
+      #progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--gold2), var(--gold));
+        width: 0%;
+        transition: width 0.4s ease;
+      }
+
+      /* ── LAYOUT ── */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px;
+      }
+
+      /* ── PICK SCREEN ── */
+      #pick-screen {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      /* ── TEAM CARD ── */
+      .team-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        position: sticky;
+        top: 84px;
+      }
+      .team-card-header {
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+      }
+      .team-card-header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.07;
+        background: var(--team-color, #fff);
+      }
+      .team-logo {
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
+        position: relative;
+        z-index: 1;
+      }
+      .team-logo-placeholder {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 16px;
+        color: var(--muted);
+        position: relative;
+        z-index: 1;
+      }
+      .team-info {
+        position: relative;
+        z-index: 1;
+      }
+      .pick-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gold);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .team-name {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 22px;
+        letter-spacing: 0.5px;
+        line-height: 1.1;
+      }
+      .team-record {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .needs-section {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .section-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 10px;
+      }
+      .needs-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .need-chip {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      .need-chip.p1 {
+        background: rgba(239, 68, 68, 0.18);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      .need-chip.p2 {
+        background: rgba(245, 200, 66, 0.12);
+        color: var(--gold);
+        border: 1px solid rgba(245, 200, 66, 0.25);
+      }
+      .need-chip.p3 {
+        background: rgba(107, 114, 128, 0.15);
+        color: var(--dim);
+        border: 1px solid rgba(107, 114, 128, 0.25);
+      }
+
+      .needs-note {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+        margin-top: 10px;
+        font-style: italic;
+      }
+
+      /* ── BEST AVAILABLE ── */
+      .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+      .panel-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 20px;
+        letter-spacing: 1px;
+        color: var(--text);
+      }
+
+      .filter-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--surface2);
+        color: var(--dim);
+        transition: all 0.15s;
+      }
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: var(--gold);
+        color: #000;
+        border-color: var(--gold);
+      }
+
+      /* ── PROSPECT LIST ── */
+      #prospect-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .prospect-row {
+        display: grid;
+        grid-template-columns: 36px 1fr auto auto;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+        position: relative;
+        overflow: hidden;
+      }
+      .prospect-row::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: transparent;
+        transition: background 0.15s;
+      }
+      .prospect-row:hover {
+        background: var(--surface2);
+        border-color: var(--gold);
+        transform: translateX(2px);
+      }
+      .prospect-row:hover::before {
+        background: var(--gold);
+      }
+      .prospect-row.need-match {
+        border-color: rgba(34, 197, 94, 0.3);
+      }
+      .prospect-row.need-match::before {
+        background: var(--green);
+      }
+
+      .rank-num {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        text-align: center;
+      }
+      .prospect-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text);
+      }
+      .prospect-meta {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 1px;
+      }
+      .prospect-meta b {
+        color: var(--dim);
+      }
+      .pos-badge {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .pick-btn {
+        padding: 6px 14px;
+        background: var(--gold);
+        color: #000;
+        border: none;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s;
+        letter-spacing: 0.3px;
+      }
+      .pick-btn:hover {
+        background: #ffd700;
+        transform: scale(1.04);
+      }
+
+      .need-match-badge {
+        position: absolute;
+        right: 100px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 9px;
+        font-weight: 700;
+        color: var(--green);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.8;
+      }
+
+      /* ── RESULTS SCREEN ── */
+      #results-screen {
+        display: none;
+      }
+
+      .results-header {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      .results-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 48px;
+        letter-spacing: 3px;
+        color: var(--gold);
+        line-height: 1;
+      }
+      .results-sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 6px;
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .results-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 24px;
+      }
+      .btn {
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        border: none;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.15s;
+      }
+      .btn-gold {
+        background: var(--gold);
+        color: #000;
+      }
+      .btn-gold:hover {
+        background: #ffd700;
+      }
+      .btn-outline {
+        background: transparent;
+        color: var(--dim);
+        border: 1px solid var(--border);
+      }
+      .btn-outline:hover {
+        border-color: var(--dim);
+        color: var(--text);
+      }
+
+      /* ── RESULTS TABLE ── */
+      #results-table-wrap {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      thead {
+        background: #0d0f14;
+        border-bottom: 2px solid var(--gold);
+      }
+      th {
+        padding: 12px 14px;
+        text-align: left;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--muted);
+      }
+      tr.result-row {
+        border-bottom: 1px solid var(--border);
+        transition: background 0.1s;
+      }
+      tr.result-row:hover {
+        background: var(--surface2);
+      }
+      tr.result-row:last-child {
+        border-bottom: none;
+      }
+      td {
+        padding: 10px 14px;
+        vertical-align: middle;
+      }
+      .pick-num-cell {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--gold);
+        width: 48px;
+      }
+      .team-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 140px;
+      }
+      .team-logo-sm {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+      }
+      .team-logo-sm-placeholder {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 9px;
+        color: var(--muted);
+      }
+      .team-abbrev {
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .player-name-cell {
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .college-cell {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .grade-cell {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 12px;
+        font-family: "IBM Plex Mono", monospace;
+      }
+      .grade-A {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+      }
+      .grade-B {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+      }
+      .grade-C {
+        background: rgba(245, 200, 66, 0.12);
+        color: var(--gold);
+      }
+
+      /* ── BRANDING FOOTER ON TABLE ── */
+      .results-footer {
+        text-align: center;
+        padding: 16px;
+        border-top: 1px solid var(--border);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--muted);
+        background: var(--surface);
+      }
+
+      /* ── SCROLLABLE PROSPECT AREA ── */
+      #prospect-list-container {
+        max-height: 520px;
+        overflow-y: auto;
+        border-radius: 8px;
+        padding-right: 4px;
+      }
+      #prospect-list-container::-webkit-scrollbar {
+        width: 4px;
+      }
+      #prospect-list-container::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      #prospect-list-container::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+      }
+
+      /* ── ALREADY PICKED OVERLAY ── */
+      .completed-row {
+        display: grid;
+        grid-template-columns: 36px 40px 1fr;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 14px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        opacity: 0.45;
+        font-size: 12px;
+        cursor: default;
+      }
+
+      /* ── POSITION COLORS ── */
+      .pos-QB {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+      }
+      .pos-RB {
+        background: rgba(34, 197, 94, 0.12);
+        color: #4ade80;
+      }
+      .pos-WR {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+      }
+      .pos-TE {
+        background: rgba(168, 85, 247, 0.12);
+        color: #c084fc;
+      }
+      .pos-OT {
+        background: rgba(251, 146, 60, 0.12);
+        color: #fb923c;
+      }
+      .pos-OG {
+        background: rgba(251, 146, 60, 0.1);
+        color: #fdba74;
+      }
+      .pos-OC {
+        background: rgba(251, 146, 60, 0.1);
+        color: #fdba74;
+      }
+      .pos-EDGE {
+        background: rgba(20, 184, 166, 0.12);
+        color: #2dd4bf;
+      }
+      .pos-DT,
+      .pos-DL {
+        background: rgba(245, 200, 66, 0.1);
+        color: var(--gold);
+      }
+      .pos-ILB,
+      .pos-OLB,
+      .pos-LB {
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+      }
+      .pos-CB {
+        background: rgba(236, 72, 153, 0.12);
+        color: #f472b6;
+      }
+      .pos-S {
+        background: rgba(6, 182, 212, 0.12);
+        color: #22d3ee;
+      }
+
+      /* ── EMPTY STATE ── */
+      .empty-msg {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      /* ── TOAST ── */
+      #toast {
+        position: fixed;
+        bottom: 32px;
+        left: 50%;
+        transform: translateX(-50%) translateY(80px);
+        background: var(--gold);
+        color: #000;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 13px;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 999;
+        white-space: nowrap;
+      }
+      #toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      @media (max-width: 700px) {
+        #pick-screen {
+          grid-template-columns: 1fr;
+        }
+        .team-card {
+          position: static;
+        }
+        #prospect-list-container {
+          max-height: 400px;
+        }
+        .need-match-badge {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">2026 NFL <span>Mock Draft Powered by RealJD™</span></div>
+      <div style="font-size: 12px; color: var(--muted); margin-left: 12px">
+        Round 1 · All 32 Picks
+      </div>
+      <div class="pick-counter" id="pick-counter">Pick <b id="cur-pick">1</b> / 32</div>
+    </header>
+    <div id="progress-bar"><div id="progress-fill"></div></div>
+
+    <div id="toast"></div>
+
+    <div class="container">
+      <!-- ── PICK SCREEN ── -->
+      <div id="pick-screen">
+        <!-- Left: Team Card -->
+        <div class="team-card" id="team-card">
+          <div class="team-card-header" id="team-header">
+            <div class="team-logo-placeholder" id="team-logo-wrap">--</div>
+            <div class="team-info">
+              <div class="pick-label" id="pick-label">Pick #1</div>
+              <div class="team-name" id="team-name">Loading...</div>
+              <div class="team-record" id="team-record"></div>
+            </div>
+          </div>
+          <div class="needs-section">
+            <div class="section-label">Top Needs</div>
+            <div class="needs-chips" id="needs-chips"></div>
+            <div class="needs-note" id="needs-note"></div>
+          </div>
+          <div style="padding: 14px 20px">
+            <div class="section-label">Picks Made</div>
+            <div
+              id="picks-made-list"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                max-height: 200px;
+                overflow-y: auto;
+              "></div>
+          </div>
+        </div>
+
+        <!-- Right: Prospect List -->
+        <div class="right-panel">
+          <div class="panel-header">
+            <div class="panel-title">Best Available</div>
+            <div style="font-size: 12px; color: var(--muted)" id="avail-count"></div>
+          </div>
+          <div class="filter-row" id="filter-row">
+            <button class="filter-btn active" onclick="setFilter('ALL')">All</button>
+            <button class="filter-btn" onclick="setFilter('QB')">QB</button>
+            <button class="filter-btn" onclick="setFilter('RB')">RB</button>
+            <button class="filter-btn" onclick="setFilter('WR')">WR</button>
+            <button class="filter-btn" onclick="setFilter('TE')">TE</button>
+            <button class="filter-btn" onclick="setFilter('OT')">OT</button>
+            <button class="filter-btn" onclick="setFilter('OG')">OG</button>
+            <button class="filter-btn" onclick="setFilter('EDGE')">EDGE</button>
+            <button class="filter-btn" onclick="setFilter('DT')">DT</button>
+            <button class="filter-btn" onclick="setFilter('LB')">LB</button>
+            <button class="filter-btn" onclick="setFilter('CB')">CB</button>
+            <button class="filter-btn" onclick="setFilter('S')">S</button>
+            <button class="filter-btn" onclick="setFilter('NEED')">⚡ Needs</button>
+          </div>
+          <div id="prospect-list-container">
+            <div id="prospect-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RESULTS SCREEN ── -->
+      <div id="results-screen">
+        <div class="results-header">
+          <div class="results-title">Your 2026 Mock Draft</div>
+          <div class="results-sub">Round 1 · All 32 Picks · Pittsburgh, PA</div>
+        </div>
+        <div class="results-actions">
+          <button class="btn btn-gold" onclick="printResults()">📸 Screenshot / Print</button>
+          <button class="btn btn-outline" onclick="resetDraft()">↺ Start Over</button>
+        </div>
+        <div id="results-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Team</th>
+                <th>Player</th>
+                <th>Pos</th>
+                <th>College</th>
+                <th>Ht / Wt</th>
+                <th>Fit</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+          <div class="results-footer" id="results-footer"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ─────────────────────────────────────────────
+      //  DATA
+      // ─────────────────────────────────────────────
+
+      const TEAMS = {
+        ARI: {
+          name: "Arizona Cardinals",
+          abbrev: "ARI",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png",
+          color: "#97233F",
+          record: "3-14",
+        },
+        ATL: {
+          name: "Atlanta Falcons",
+          abbrev: "ATL",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/atl.png",
+          color: "#A71930",
+          record: "8-9",
+        },
+        BAL: {
+          name: "Baltimore Ravens",
+          abbrev: "BAL",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png",
+          color: "#241773",
+          record: "8-9",
+        },
+        BUF: {
+          name: "Buffalo Bills",
+          abbrev: "BUF",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png",
+          color: "#00338D",
+          record: "12-5",
+        },
+        CAR: {
+          name: "Carolina Panthers",
+          abbrev: "CAR",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/car.png",
+          color: "#0085CA",
+          record: "8-9",
+        },
+        CHI: {
+          name: "Chicago Bears",
+          abbrev: "CHI",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png",
+          color: "#C83803",
+          record: "11-6",
+        },
+        CIN: {
+          name: "Cincinnati Bengals",
+          abbrev: "CIN",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+          color: "#FB4F14",
+          record: "6-11",
+        },
+        CLE: {
+          name: "Cleveland Browns",
+          abbrev: "CLE",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
+          color: "#FF3C00",
+          record: "5-12",
+        },
+        DAL: {
+          name: "Dallas Cowboys",
+          abbrev: "DAL",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png",
+          color: "#003594",
+          record: "7-9-1",
+        },
+        DEN: {
+          name: "Denver Broncos",
+          abbrev: "DEN",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
+          color: "#FB4F14",
+          record: "14-3",
+        },
+        DET: {
+          name: "Detroit Lions",
+          abbrev: "DET",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/det.png",
+          color: "#0076B6",
+          record: "9-8",
+        },
+        GB: {
+          name: "Green Bay Packers",
+          abbrev: "GB",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png",
+          color: "#203731",
+          record: "9-7-1",
+        },
+        HOU: {
+          name: "Houston Texans",
+          abbrev: "HOU",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png",
+          color: "#A71930",
+          record: "12-5",
+        },
+        IND: {
+          name: "Indianapolis Colts",
+          abbrev: "IND",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png",
+          color: "#002C5F",
+          record: "8-9",
+        },
+        JAX: {
+          name: "Jacksonville Jaguars",
+          abbrev: "JAX",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+          color: "#006778",
+          record: "13-4",
+        },
+        KC: {
+          name: "Kansas City Chiefs",
+          abbrev: "KC",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+          color: "#E31837",
+          record: "6-11",
+        },
+        LV: {
+          name: "Las Vegas Raiders",
+          abbrev: "LV",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/lv.png",
+          color: "#A5ACAF",
+          record: "3-14",
+        },
+        LAC: {
+          name: "LA Chargers",
+          abbrev: "LAC",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png",
+          color: "#0080C6",
+          record: "11-6",
+        },
+        LAR: {
+          name: "LA Rams",
+          abbrev: "LAR",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png",
+          color: "#FFA300",
+          record: "12-5",
+        },
+        MIA: {
+          name: "Miami Dolphins",
+          abbrev: "MIA",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png",
+          color: "#008E97",
+          record: "7-10",
+        },
+        MIN: {
+          name: "Minnesota Vikings",
+          abbrev: "MIN",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/min.png",
+          color: "#4F2683",
+          record: "9-8",
+        },
+        NE: {
+          name: "New England Patriots",
+          abbrev: "NE",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png",
+          color: "#002244",
+          record: "14-3",
+        },
+        NO: {
+          name: "New Orleans Saints",
+          abbrev: "NO",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/no.png",
+          color: "#D3BC8D",
+          record: "6-11",
+        },
+        NYG: {
+          name: "New York Giants",
+          abbrev: "NYG",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png",
+          color: "#0B2265",
+          record: "4-13",
+        },
+        NYJ: {
+          name: "New York Jets",
+          abbrev: "NYJ",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png",
+          color: "#125740",
+          record: "3-14",
+        },
+        PHI: {
+          name: "Philadelphia Eagles",
+          abbrev: "PHI",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+          color: "#004C54",
+          record: "11-6",
+        },
+        PIT: {
+          name: "Pittsburgh Steelers",
+          abbrev: "PIT",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/pit.png",
+          color: "#FFB612",
+          record: "10-7",
+        },
+        SF: {
+          name: "San Francisco 49ers",
+          abbrev: "SF",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png",
+          color: "#AA0000",
+          record: "12-5",
+        },
+        SEA: {
+          name: "Seattle Seahawks",
+          abbrev: "SEA",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png",
+          color: "#002244",
+          record: "14-3",
+        },
+        TB: {
+          name: "Tampa Bay Buccaneers",
+          abbrev: "TB",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png",
+          color: "#D50A0A",
+          record: "8-9",
+        },
+        TEN: {
+          name: "Tennessee Titans",
+          abbrev: "TEN",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/ten.png",
+          color: "#4B92DB",
+          record: "3-14",
+        },
+        WAS: {
+          name: "Washington Commanders",
+          abbrev: "WAS",
+          logo: "https://a.espncdn.com/i/teamlogos/nfl/500/was.png",
+          color: "#5A1414",
+          record: "5-12",
+        },
+      };
+
+      // Round 1 picks in order — [pickNum, teamId, tradeNote]
+      const ROUND1_ORDER = [
+        [1, "LV", null],
+        [2, "NYJ", null],
+        [3, "ARI", null],
+        [4, "TEN", null],
+        [5, "NYG", null],
+        [6, "CLE", null],
+        [7, "WAS", null],
+        [8, "NO", null],
+        [9, "KC", null],
+        [10, "NYG", "from CIN"],
+        [11, "MIA", null],
+        [12, "DAL", null],
+        [13, "LAR", "from ATL"],
+        [14, "BAL", null],
+        [15, "TB", null],
+        [16, "NYJ", "from IND"],
+        [17, "DET", null],
+        [18, "MIN", null],
+        [19, "CAR", null],
+        [20, "DAL", "from GB"],
+        [21, "PIT", null],
+        [22, "LAC", null],
+        [23, "PHI", null],
+        [24, "CLE", "from JAX"],
+        [25, "CHI", null],
+        [26, "BUF", null],
+        [27, "SF", null],
+        [28, "HOU", null],
+        [29, "KC", "from LAR"],
+        [30, "MIA", "from DEN"],
+        [31, "NE", null],
+        [32, "SEA", null],
+      ];
+
+      const NEEDS = {
+        LV: {
+          needs: ["QB", "WR", "OL", "DL", "CB"],
+          note: "Building around presumptive #1 pick. Need blockers and weapons plus interior DL.",
+        },
+        NYJ: {
+          needs: ["QB", "Edge", "WR", "CB", "OL"],
+          note: "Loaded with picks. Geno Smith is bridge. Defense needs playmakers — only 4 takeaways in all of 2025.",
+        },
+        ARI: {
+          needs: ["QB", "OL", "Edge", "DL", "LB"],
+          note: "Hitting reset post-Kyler Murray. Need RT help and edge pass-rushers (only 8 sacks last 6 games).",
+        },
+        TEN: {
+          needs: ["OL", "Edge", "WR", "RB", "LB"],
+          note: "Must give Cam Ward more help. Center and RG need upgrades. Need edge rushers badly.",
+        },
+        NYG: {
+          needs: ["DL", "OL", "CB", "LB", "WR"],
+          note: "Traded Dexter Lawrence — trenches are priority. Building around Jaxson Dart.",
+        },
+        CLE: {
+          needs: ["QB", "OL", "WR", "CB", "Edge"],
+          note: "QB decision looming: go with in-house options or draft? LT still a gap.",
+        },
+        WAS: {
+          needs: ["WR", "Edge", "OL", "DB", "RB"],
+          note: "Jayden Daniels needs a WR2 opposite McLaurin. Still need one more edge rusher.",
+        },
+        NO: {
+          needs: ["WR", "Edge", "CB", "DL", "OL"],
+          note: "Tyler Shough has little outside Chris Olave. Defense needs more juice off the edge.",
+        },
+        KC: {
+          needs: ["CB", "WR", "Edge", "DL", "OL"],
+          note: "Mass exodus in secondary — 3 starters gone. Mahomes recovering from ACL tear.",
+        },
+        MIA: {
+          needs: ["WR", "CB", "Edge", "OL", "S"],
+          note: "Lost Tyreek Hill and Jaylen Waddle. Full secondary rebuild underway.",
+        },
+        DAL: {
+          needs: ["Edge", "LB", "CB", "DL", "OL"],
+          note: "Gave up 30.1 PPG in 2025. Added Rashan Gary but need more edge and ILB badly.",
+        },
+        LAR: {
+          needs: ["WR", "OL", "LB", "Edge", "DB"],
+          note: "Davante Adams on expiring deal. Need WR3 and RT depth. Primed for Super Bowl run.",
+        },
+        BAL: {
+          needs: ["OL", "WR", "CB", "Edge", "RB"],
+          note: "Lost Linderbaum, added Hendrickson. Strong when Lamar healthy.",
+        },
+        TB: {
+          needs: ["WR", "OL", "CB", "Edge", "LB"],
+          note: "Baker Mayfield era continues. Need WR help and OL depth.",
+        },
+        DET: {
+          needs: ["CB", "Edge", "DL", "WR", "OL"],
+          note: "Strong core; secondary and pass rush need continued investment.",
+        },
+        MIN: {
+          needs: ["QB", "WR", "OT", "Edge", "CB"],
+          note: "JJ McCarthy developing. More weapons and pass protection needed.",
+        },
+        CAR: {
+          needs: ["C", "QB", "WR", "Edge", "CB"],
+          note: "Lost starting center Cade Mays. Luke Fortner is a 1-year bridge only.",
+        },
+        PIT: {
+          needs: ["QB", "WR", "CB", "OL", "Edge"],
+          note: "QB situation unsettled post-Russell Wilson. Need franchise QB.",
+        },
+        LAC: {
+          needs: ["WR", "OL", "LB", "CB", "DT"],
+          note: "Herbert needs more weapons. Defensive depth at LB and corner are gaps.",
+        },
+        PHI: {
+          needs: ["WR", "CB", "OL", "LB", "DT"],
+          note: "Super Bowl caliber. Need WR depth and corner opposite Darius Slay.",
+        },
+        CHI: {
+          needs: ["Edge", "DT", "LB", "WR", "OT"],
+          note: "Montez Sweat turns 30. Defense needs significant talent influx.",
+        },
+        BUF: {
+          needs: ["WR", "DL", "CB", "LB", "S"],
+          note: "Paid D.J. Moore to address WR. Defense needs interior line reinforcement.",
+        },
+        SF: {
+          needs: ["QB", "WR", "OL", "DL", "CB"],
+          note: "Limited capital. Aiyuk/Deebo return but depth behind Purdy is thin.",
+        },
+        HOU: {
+          needs: ["CB", "Edge", "WR", "OL", "LB"],
+          note: "Strong playoff team. Secondary and pass-rush depth are the key gaps.",
+        },
+        NE: {
+          needs: ["WR", "OL", "CB", "Edge", "TE"],
+          note: "Surprise contender. Need weapons around Drake Maye and secondary depth.",
+        },
+        SEA: {
+          needs: ["WR", "OL", "CB", "LB", "DT"],
+          note: "Lost Walker, Bryant, Mafe, Woolen in FA. Still talented but key gaps remain.",
+        },
+        ATL: {
+          needs: ["WR", "TE", "Edge", "CB", "DL"],
+          note: "Still need long-term WR targets to complement Drake London.",
+        },
+        IND: {
+          needs: ["WR", "OL", "Edge", "CB", "LB"],
+          note: "Need playmakers around Anthony Richardson. Traded 2026 R1 for Sauce Gardner.",
+        },
+        JAX: {
+          needs: ["CB", "WR", "DL", "OL", "S"],
+          note: "AFC South contender with plenty of picks. Looking to add secondary depth.",
+        },
+        DEN: {
+          needs: ["WR", "CB", "OL", "DL", "LB"],
+          note: "Super Bowl contender. Right tackle and receiver depth are main areas.",
+        },
+        GB: {
+          needs: ["OL", "WR", "CB", "Edge", "S"],
+          note: "Betting big on Jordan Morgan at LT. Limited capital but still strong.",
+        },
+        CIN: {
+          needs: ["OL", "Edge", "CB", "LB", "S"],
+          note: "Best offensive trio in NFL but worst supporting cast. OL must improve.",
+        },
+      };
+
+      // Top prospects — rank, name, pos, college, height, weight, class
+      const PROSPECTS = [
+        {
+          rank: 1,
+          name: "Fernando Mendoza",
+          pos: "QB",
+          college: "Indiana",
+          ht: "6'5\"",
+          wt: 236,
+          yr: "RJR",
+        },
+        {
+          rank: 2,
+          name: "Arvell Reese",
+          pos: "EDGE",
+          college: "Ohio State",
+          ht: "6'4\"",
+          wt: 241,
+          yr: "JR",
+        },
+        {
+          rank: 3,
+          name: "Jeremiyah Love",
+          pos: "RB",
+          college: "Notre Dame",
+          ht: "6'0\"",
+          wt: 212,
+          yr: "JR",
+        },
+        {
+          rank: 4,
+          name: "Sonny Styles",
+          pos: "OLB",
+          college: "Ohio State",
+          ht: "6'5\"",
+          wt: 244,
+          yr: "SR",
+        },
+        {
+          rank: 5,
+          name: "Caleb Downs",
+          pos: "S",
+          college: "Ohio State",
+          ht: "6'0\"",
+          wt: 206,
+          yr: "JR",
+        },
+        {
+          rank: 6,
+          name: "Francis Mauigoa",
+          pos: "OT",
+          college: "Miami (FL)",
+          ht: "6'6\"",
+          wt: 329,
+          yr: "JR",
+        },
+        {
+          rank: 7,
+          name: "David Bailey",
+          pos: "EDGE",
+          college: "Texas Tech",
+          ht: "6'4\"",
+          wt: 251,
+          yr: "SR",
+        },
+        {
+          rank: 8,
+          name: "Mansoor Delane",
+          pos: "CB",
+          college: "LSU",
+          ht: "6'0\"",
+          wt: 187,
+          yr: "SR",
+        },
+        {
+          rank: 9,
+          name: "Carnell Tate",
+          pos: "WR",
+          college: "Ohio State",
+          ht: "6'2\"",
+          wt: 192,
+          yr: "JR",
+        },
+        {
+          rank: 10,
+          name: "Spencer Fano",
+          pos: "OT",
+          college: "Utah",
+          ht: "6'6\"",
+          wt: 311,
+          yr: "JR",
+        },
+        {
+          rank: 11,
+          name: "Makai Lemon",
+          pos: "WR",
+          college: "USC",
+          ht: "5'11\"",
+          wt: 192,
+          yr: "JR",
+        },
+        {
+          rank: 12,
+          name: "Rueben Bain Jr.",
+          pos: "EDGE",
+          college: "Miami (FL)",
+          ht: "6'2\"",
+          wt: 263,
+          yr: "JR",
+        },
+        {
+          rank: 13,
+          name: "Olaivavega Ioane",
+          pos: "OG",
+          college: "Penn State",
+          ht: "6'4\"",
+          wt: 320,
+          yr: "RJR",
+        },
+        {
+          rank: 14,
+          name: "Kenyon Sadiq",
+          pos: "TE",
+          college: "Oregon",
+          ht: "6'3\"",
+          wt: 241,
+          yr: "JR",
+        },
+        {
+          rank: 15,
+          name: "Jordyn Tyson",
+          pos: "WR",
+          college: "Arizona State",
+          ht: "6'2\"",
+          wt: 203,
+          yr: "RJR",
+        },
+        {
+          rank: 16,
+          name: "Keldric Faulk",
+          pos: "EDGE",
+          college: "Auburn",
+          ht: "6'6\"",
+          wt: 276,
+          yr: "JR",
+        },
+        {
+          rank: 17,
+          name: "Monroe Freeling",
+          pos: "OT",
+          college: "Georgia",
+          ht: "6'7\"",
+          wt: 315,
+          yr: "JR",
+        },
+        {
+          rank: 18,
+          name: "Dillon Thieneman",
+          pos: "S",
+          college: "Oregon",
+          ht: "6'0\"",
+          wt: 201,
+          yr: "JR",
+        },
+        {
+          rank: 19,
+          name: "Jermod McCoy",
+          pos: "CB",
+          college: "Tennessee",
+          ht: "6'1\"",
+          wt: 188,
+          yr: "JR",
+        },
+        {
+          rank: 20,
+          name: "Ty Simpson",
+          pos: "QB",
+          college: "Alabama",
+          ht: "6'1\"",
+          wt: 211,
+          yr: "RJR",
+        },
+        {
+          rank: 21,
+          name: "Omar Cooper Jr.",
+          pos: "WR",
+          college: "Indiana",
+          ht: "6'0\"",
+          wt: 199,
+          yr: "RJR",
+        },
+        {
+          rank: 22,
+          name: "Chris Johnson",
+          pos: "CB",
+          college: "San Diego State",
+          ht: "6'0\"",
+          wt: 193,
+          yr: "SR",
+        },
+        {
+          rank: 23,
+          name: "T.J. Parker",
+          pos: "EDGE",
+          college: "Clemson",
+          ht: "6'4\"",
+          wt: 263,
+          yr: "JR",
+        },
+        {
+          rank: 24,
+          name: "Kadyn Proctor",
+          pos: "OT",
+          college: "Alabama",
+          ht: "6'7\"",
+          wt: 352,
+          yr: "JR",
+        },
+        {
+          rank: 25,
+          name: "Colton Hood",
+          pos: "CB",
+          college: "Tennessee",
+          ht: "6'0\"",
+          wt: 193,
+          yr: "RSO",
+        },
+        {
+          rank: 26,
+          name: "Peter Woods",
+          pos: "DT",
+          college: "Clemson",
+          ht: "6'2\"",
+          wt: 298,
+          yr: "JR",
+        },
+        {
+          rank: 27,
+          name: "KC Concepcion",
+          pos: "WR",
+          college: "Texas A&M",
+          ht: "6'0\"",
+          wt: 196,
+          yr: "JR",
+        },
+        {
+          rank: 28,
+          name: "Caleb Lomu",
+          pos: "OT",
+          college: "Utah",
+          ht: "6'6\"",
+          wt: 313,
+          yr: "RSO",
+        },
+        {
+          rank: 29,
+          name: "Emmanuel McNeil-Warren",
+          pos: "S",
+          college: "Toledo",
+          ht: "6'3\"",
+          wt: 201,
+          yr: "SR",
+        },
+        {
+          rank: 30,
+          name: "Denzel Boston",
+          pos: "WR",
+          college: "Washington",
+          ht: "6'4\"",
+          wt: 212,
+          yr: "RJR",
+        },
+        {
+          rank: 31,
+          name: "Blake Miller",
+          pos: "OT",
+          college: "Clemson",
+          ht: "6'7\"",
+          wt: 317,
+          yr: "SR",
+        },
+        {
+          rank: 32,
+          name: "Max Iheanachor",
+          pos: "OT",
+          college: "Arizona State",
+          ht: "6'6\"",
+          wt: 321,
+          yr: "RSR",
+        },
+        {
+          rank: 33,
+          name: "Kayden McDonald",
+          pos: "DT",
+          college: "Ohio State",
+          ht: "6'2\"",
+          wt: 326,
+          yr: "JR",
+        },
+        {
+          rank: 34,
+          name: "Akheem Mesidor",
+          pos: "EDGE",
+          college: "Miami (FL)",
+          ht: "6'3\"",
+          wt: 259,
+          yr: "RSR",
+        },
+        {
+          rank: 35,
+          name: "Lee Hunter",
+          pos: "DT",
+          college: "Texas Tech",
+          ht: "6'3\"",
+          wt: 318,
+          yr: "RSR",
+        },
+        {
+          rank: 36,
+          name: "Brandon Cisse",
+          pos: "CB",
+          college: "South Carolina",
+          ht: "6'0\"",
+          wt: 189,
+          yr: "JR",
+        },
+        {
+          rank: 37,
+          name: "Cashius Howell",
+          pos: "EDGE",
+          college: "Texas A&M",
+          ht: "6'2\"",
+          wt: 253,
+          yr: "RSR",
+        },
+        {
+          rank: 38,
+          name: "C.J. Allen",
+          pos: "OLB",
+          college: "Georgia",
+          ht: "6'1\"",
+          wt: 230,
+          yr: "JR",
+        },
+        {
+          rank: 39,
+          name: "Christen Miller",
+          pos: "DT",
+          college: "Georgia",
+          ht: "6'4\"",
+          wt: 321,
+          yr: "RJR",
+        },
+        {
+          rank: 40,
+          name: "Malachi Lawrence",
+          pos: "EDGE",
+          college: "UCF",
+          ht: "6'4\"",
+          wt: 253,
+          yr: "RSR",
+        },
+        {
+          rank: 41,
+          name: "Gabe Jacas",
+          pos: "EDGE",
+          college: "Illinois",
+          ht: "6'4\"",
+          wt: 260,
+          yr: "SR",
+        },
+        {
+          rank: 42,
+          name: "Eli Stowers",
+          pos: "TE",
+          college: "Vanderbilt",
+          ht: "6'4\"",
+          wt: 239,
+          yr: "RSR",
+        },
+        {
+          rank: 43,
+          name: "Anthony Hill Jr.",
+          pos: "ILB",
+          college: "Texas",
+          ht: "6'2\"",
+          wt: 238,
+          yr: "JR",
+        },
+        {
+          rank: 44,
+          name: "Emmanuel Pregnon",
+          pos: "OG",
+          college: "Oregon",
+          ht: "6'4\"",
+          wt: 314,
+          yr: "RSR",
+        },
+        {
+          rank: 45,
+          name: "D'Angelo Ponds",
+          pos: "CB",
+          college: "Indiana",
+          ht: "5'9\"",
+          wt: 182,
+          yr: "JR",
+        },
+        {
+          rank: 46,
+          name: "R Mason Thomas",
+          pos: "EDGE",
+          college: "Oklahoma",
+          ht: "6'2\"",
+          wt: 241,
+          yr: "SR",
+        },
+        {
+          rank: 47,
+          name: "Keionte Scott",
+          pos: "CB",
+          college: "Miami (FL)",
+          ht: "5'11\"",
+          wt: 193,
+          yr: "RSR",
+        },
+        {
+          rank: 48,
+          name: "Chase Bisontis",
+          pos: "OG",
+          college: "Texas A&M",
+          ht: "6'5\"",
+          wt: 315,
+          yr: "JR",
+        },
+        {
+          rank: 49,
+          name: "Avieon Terrell",
+          pos: "CB",
+          college: "Clemson",
+          ht: "5'11\"",
+          wt: 186,
+          yr: "JR",
+        },
+        {
+          rank: 50,
+          name: "Caleb Banks",
+          pos: "DT",
+          college: "Florida",
+          ht: "6'6\"",
+          wt: 327,
+          yr: "RSR",
+        },
+        {
+          rank: 51,
+          name: "Jadarian Price",
+          pos: "RB",
+          college: "Notre Dame",
+          ht: "5'11\"",
+          wt: 203,
+          yr: "RJR",
+        },
+        {
+          rank: 52,
+          name: "Germie Bernard",
+          pos: "WR",
+          college: "Alabama",
+          ht: "6'1\"",
+          wt: 206,
+          yr: "SR",
+        },
+        {
+          rank: 53,
+          name: "Zion Young",
+          pos: "EDGE",
+          college: "Missouri",
+          ht: "6'6\"",
+          wt: 262,
+          yr: "SR",
+        },
+        {
+          rank: 54,
+          name: "Jacob Rodriguez",
+          pos: "ILB",
+          college: "Texas Tech",
+          ht: "6'1\"",
+          wt: 231,
+          yr: "RSR",
+        },
+        {
+          rank: 55,
+          name: "Treydan Stukes",
+          pos: "S",
+          college: "Arizona",
+          ht: "6'1\"",
+          wt: 190,
+          yr: "RSR",
+        },
+        {
+          rank: 56,
+          name: "Jake Golday",
+          pos: "OLB",
+          college: "Cincinnati",
+          ht: "6'4\"",
+          wt: 239,
+          yr: "RSR",
+        },
+        {
+          rank: 57,
+          name: "Max Klare",
+          pos: "TE",
+          college: "Ohio State",
+          ht: "6'5\"",
+          wt: 246,
+          yr: "RJR",
+        },
+        {
+          rank: 58,
+          name: "Derrick Moore",
+          pos: "EDGE",
+          college: "Michigan",
+          ht: "6'4\"",
+          wt: 255,
+          yr: "SR",
+        },
+        {
+          rank: 59,
+          name: "Chris Bell",
+          pos: "WR",
+          college: "Louisville",
+          ht: "6'2\"",
+          wt: 222,
+          yr: "SR",
+        },
+        {
+          rank: 60,
+          name: "Mike Washington Jr.",
+          pos: "RB",
+          college: "Arkansas",
+          ht: "6'1\"",
+          wt: 223,
+          yr: "RSR",
+        },
+        {
+          rank: 61,
+          name: "Chris Brazzell II",
+          pos: "WR",
+          college: "Tennessee",
+          ht: "6'4\"",
+          wt: 198,
+          yr: "RJR",
+        },
+        {
+          rank: 62,
+          name: "Gennings Dunker",
+          pos: "OG",
+          college: "Iowa",
+          ht: "6'5\"",
+          wt: 319,
+          yr: "RSR",
+        },
+        {
+          rank: 63,
+          name: "Domonique Orange",
+          pos: "DT",
+          college: "Iowa State",
+          ht: "6'2\"",
+          wt: 322,
+          yr: "SR",
+        },
+        {
+          rank: 64,
+          name: "Davison Igbinosun",
+          pos: "CB",
+          college: "Ohio State",
+          ht: "6'2\"",
+          wt: 189,
+          yr: "SR",
+        },
+        {
+          rank: 65,
+          name: "Caleb Tiernan",
+          pos: "OT",
+          college: "Northwestern",
+          ht: "6'8\"",
+          wt: 323,
+          yr: "RSR",
+        },
+        { rank: 66, name: "A.J. Haulcy", pos: "S", college: "LSU", ht: "6'0\"", wt: 215, yr: "SR" },
+        {
+          rank: 67,
+          name: "Ted Hurst",
+          pos: "WR",
+          college: "Georgia State",
+          ht: "6'4\"",
+          wt: 206,
+          yr: "SR",
+        },
+        {
+          rank: 68,
+          name: "Romello Height",
+          pos: "EDGE",
+          college: "Texas Tech",
+          ht: "6'3\"",
+          wt: 239,
+          yr: "RSR",
+        },
+        {
+          rank: 69,
+          name: "Elijah Sarratt",
+          pos: "WR",
+          college: "Indiana",
+          ht: "6'2\"",
+          wt: 210,
+          yr: "SR",
+        },
+        {
+          rank: 70,
+          name: "Keylan Rutledge",
+          pos: "OG",
+          college: "Georgia Tech",
+          ht: "6'4\"",
+          wt: 316,
+          yr: "SR",
+        },
+        {
+          rank: 71,
+          name: "Antonio Williams",
+          pos: "WR",
+          college: "Clemson",
+          ht: "5'11\"",
+          wt: 187,
+          yr: "RJR",
+        },
+        {
+          rank: 72,
+          name: "Josiah Trotter",
+          pos: "ILB",
+          college: "Missouri",
+          ht: "6'2\"",
+          wt: 237,
+          yr: "RSO",
+        },
+        {
+          rank: 73,
+          name: "Zachariah Branch",
+          pos: "WR",
+          college: "Georgia",
+          ht: "5'9\"",
+          wt: 177,
+          yr: "JR",
+        },
+        {
+          rank: 74,
+          name: "Malachi Fields",
+          pos: "WR",
+          college: "Notre Dame",
+          ht: "6'4\"",
+          wt: 218,
+          yr: "RSR",
+        },
+        {
+          rank: 75,
+          name: "Tacario Davis",
+          pos: "CB",
+          college: "Washington",
+          ht: "6'4\"",
+          wt: 194,
+          yr: "SR",
+        },
+        {
+          rank: 76,
+          name: "Darrell Jackson Jr.",
+          pos: "DT",
+          college: "Florida State",
+          ht: "6'6\"",
+          wt: 315,
+          yr: "RSR",
+        },
+        {
+          rank: 77,
+          name: "Malik Muhammad",
+          pos: "CB",
+          college: "Texas",
+          ht: "6'0\"",
+          wt: 182,
+          yr: "JR",
+        },
+        {
+          rank: 78,
+          name: "Dani Dennis-Sutton",
+          pos: "EDGE",
+          college: "Penn State",
+          ht: "6'6\"",
+          wt: 256,
+          yr: "SR",
+        },
+        {
+          rank: 79,
+          name: "Kyle Louis",
+          pos: "OLB",
+          college: "Pittsburgh",
+          ht: "6'0\"",
+          wt: 220,
+          yr: "RJR",
+        },
+        {
+          rank: 80,
+          name: "Zakee Wheatley",
+          pos: "S",
+          college: "Penn State",
+          ht: "6'3\"",
+          wt: 208,
+          yr: "RSR",
+        },
+      ];
+
+      // Pos → need-key mapping for matching
+      const POS_NEED_MAP = {
+        QB: ["QB"],
+        RB: ["RB"],
+        WR: ["WR"],
+        TE: ["TE"],
+        OT: ["OL", "OT"],
+        OG: ["OL", "OG"],
+        OC: ["OL", "C"],
+        EDGE: ["Edge", "EDGE"],
+        ILB: ["LB", "ILB"],
+        OLB: ["LB", "OLB"],
+        DT: ["DL", "DT"],
+        DL: ["DL"],
+        CB: ["CB"],
+        S: ["S", "DB"],
+      };
+
+      // ─────────────────────────────────────────────
+      //  STATE
+      // ─────────────────────────────────────────────
+      let currentPickIdx = 0;
+      let pickedIds = new Set(); // prospect ranks
+      let draftResults = []; // [{pick, team, prospect}]
+      let activeFilter = "ALL";
+
+      // ─────────────────────────────────────────────
+      //  HELPERS
+      // ─────────────────────────────────────────────
+      function getPosClass(pos) {
+        if (["OT", "OG", "OC"].includes(pos)) return "pos-OT";
+        if (["ILB", "OLB"].includes(pos)) return "pos-ILB";
+        if (pos === "DT" || pos === "DL") return "pos-DT";
+        return "pos-" + pos;
+      }
+
+      function isNeedMatch(prospect, teamId) {
+        const teamNeeds = NEEDS[teamId]?.needs || [];
+        const posKeys = POS_NEED_MAP[prospect.pos] || [prospect.pos];
+        return teamNeeds.some((n) => posKeys.some((k) => k.toLowerCase() === n.toLowerCase()));
+      }
+
+      function pickGrade(pickNum, rank) {
+        const diff = pickNum - rank;
+        if (diff <= 3) return { label: "A+", cls: "grade-A" };
+        if (diff <= 8) return { label: "A", cls: "grade-A" };
+        if (diff <= 14) return { label: "B+", cls: "grade-B" };
+        if (diff <= 20) return { label: "B", cls: "grade-B" };
+        if (diff <= 26) return { label: "B-", cls: "grade-B" };
+        return { label: "C", cls: "grade-C" };
+      }
+
+      function getAvailable() {
+        return PROSPECTS.filter((p) => !pickedIds.has(p.rank));
+      }
+
+      function logoImg(url, abbrev, small = false) {
+        const size = small ? 28 : 52;
+        const cls = small ? "team-logo-sm" : "team-logo";
+        if (!url)
+          return `<div class="${small ? "team-logo-sm-placeholder" : "team-logo-placeholder"}">${abbrev}</div>`;
+        return `<img src="${url}" class="${cls}" onerror="this.outerHTML='<div class=\\'${small ? "team-logo-sm-placeholder" : "team-logo-placeholder"}\\'>${abbrev}</div>'" alt="${abbrev}">`;
+      }
+
+      // ─────────────────────────────────────────────
+      //  RENDER PICK SCREEN
+      // ─────────────────────────────────────────────
+      function renderPickScreen() {
+        const [pickNum, teamId, tradeNote] = ROUND1_ORDER[currentPickIdx];
+        const team = TEAMS[teamId];
+        const needs = NEEDS[teamId];
+
+        // Update counter
+        document.getElementById("cur-pick").textContent = pickNum;
+        document.getElementById("progress-fill").style.width = (currentPickIdx / 32) * 100 + "%";
+
+        // Team header
+        document.getElementById("pick-label").textContent =
+          `Pick #${pickNum}${tradeNote ? " (" + tradeNote + ")" : ""}`;
+        document.getElementById("team-name").textContent = team.name;
+        document.getElementById("team-record").textContent = `2025 Record: ${team.record}`;
+        document.getElementById("team-header").style.setProperty("--team-color", team.color);
+
+        // Logo
+        const logoWrap = document.getElementById("team-logo-wrap");
+        logoWrap.outerHTML = logoImg(team.logo, team.abbrev);
+        // re-get since outerHTML replaces it
+        // but id is gone — wrap it
+        const hdr = document.getElementById("team-header");
+        const firstChild = hdr.firstElementChild;
+        firstChild.id = "team-logo-wrap";
+
+        // Needs chips
+        const chipsEl = document.getElementById("needs-chips");
+        chipsEl.innerHTML = (needs?.needs || [])
+          .map(
+            (n, i) => `<span class="need-chip ${i === 0 ? "p1" : i <= 2 ? "p2" : "p3"}">${n}</span>`
+          )
+          .join("");
+        document.getElementById("needs-note").textContent = needs?.note || "";
+
+        // Picks made list (compact)
+        const madeEl = document.getElementById("picks-made-list");
+        if (draftResults.length === 0) {
+          madeEl.innerHTML =
+            '<div style="font-size:11px;color:var(--muted);padding:4px 0;">No picks yet</div>';
+        } else {
+          madeEl.innerHTML = draftResults
+            .slice()
+            .reverse()
+            .slice(0, 8)
+            .map(
+              (r) =>
+                `<div class="completed-row">
+        <span class="rank-num" style="font-size:11px;">#${r.pick}</span>
+        ${logoImg(TEAMS[r.team].logo, TEAMS[r.team].abbrev, true)}
+        <span style="font-size:11px;color:var(--dim);">${r.prospect.name} <span class="pos-badge ${getPosClass(r.prospect.pos)}" style="font-size:9px;padding:1px 5px;">${r.prospect.pos}</span></span>
+      </div>`
+            )
+            .join("");
+        }
+
+        renderProspects();
+      }
+
+      // ─────────────────────────────────────────────
+      //  RENDER PROSPECTS
+      // ─────────────────────────────────────────────
+      function setFilter(f) {
+        activeFilter = f;
+        document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+        const btns = document.querySelectorAll(".filter-btn");
+        btns.forEach((b) => {
+          if (b.textContent.replace("⚡ ", "") === f || (f === "ALL" && b.textContent === "All"))
+            b.classList.add("active");
+        });
+        renderProspects();
+      }
+
+      function renderProspects() {
+        const [pickNum, teamId] = ROUND1_ORDER[currentPickIdx];
+        const avail = getAvailable();
+
+        let filtered = avail;
+        if (activeFilter === "NEED") {
+          filtered = avail.filter((p) => isNeedMatch(p, teamId));
+        } else if (activeFilter !== "ALL") {
+          const f = activeFilter;
+          filtered = avail.filter((p) => {
+            if (f === "OT") return ["OT", "OG", "OC"].includes(p.pos);
+            if (f === "OG") return ["OG", "OC"].includes(p.pos);
+            if (f === "LB") return ["ILB", "OLB", "LB"].includes(p.pos);
+            if (f === "DT") return ["DT", "DL"].includes(p.pos);
+            return p.pos === f;
+          });
+        }
+
+        document.getElementById("avail-count").textContent = `${filtered.length} available`;
+
+        if (filtered.length === 0) {
+          document.getElementById("prospect-list").innerHTML =
+            `<div class="empty-msg">No available prospects match this filter.<br><button onclick="setFilter('ALL')" style="margin-top:10px;padding:6px 14px;background:var(--gold);color:#000;border:none;border-radius:6px;cursor:pointer;font-weight:700;">Show All</button></div>`;
+          return;
+        }
+
+        document.getElementById("prospect-list").innerHTML = filtered
+          .map((p) => {
+            const match = isNeedMatch(p, teamId);
+            return `<div class="prospect-row ${match ? "need-match" : ""}" onclick="makePick(${p.rank})">
+      <div class="rank-num">${p.rank}</div>
+      <div>
+        <div class="prospect-name">${p.name} ${match ? '<span style="font-size:9px;color:var(--green);font-weight:700;letter-spacing:1px;">✓ NEED</span>' : ""}</div>
+        <div class="prospect-meta">${p.college} · ${p.ht} / ${p.wt} lbs · <b>${p.yr}</b></div>
+      </div>
+      <span class="pos-badge ${getPosClass(p.pos)}">${p.pos}</span>
+      <button class="pick-btn" onclick="event.stopPropagation();makePick(${p.rank})">Draft</button>
+    </div>`;
+          })
+          .join("");
+      }
+
+      // ─────────────────────────────────────────────
+      //  MAKE PICK
+      // ─────────────────────────────────────────────
+      function makePick(prospectRank) {
+        const [pickNum, teamId] = ROUND1_ORDER[currentPickIdx];
+        const prospect = PROSPECTS.find((p) => p.rank === prospectRank);
+        if (!prospect) return;
+
+        pickedIds.add(prospectRank);
+        draftResults.push({ pick: pickNum, team: teamId, prospect });
+
+        showToast(`${TEAMS[teamId].abbrev} selects ${prospect.name}`);
+
+        currentPickIdx++;
+        activeFilter = "ALL";
+
+        if (currentPickIdx >= 32) {
+          showResults();
+        } else {
+          renderPickScreen();
+        }
+      }
+
+      // ─────────────────────────────────────────────
+      //  TOAST
+      // ─────────────────────────────────────────────
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+      }
+
+      // ─────────────────────────────────────────────
+      //  RESULTS
+      // ─────────────────────────────────────────────
+      function showResults() {
+        document.getElementById("pick-screen").style.display = "none";
+        document.getElementById("results-screen").style.display = "block";
+        document.getElementById("progress-fill").style.width = "100%";
+        document.getElementById("pick-counter").innerHTML =
+          'Draft <b style="color:var(--green)">Complete!</b>';
+
+        const tbody = document.getElementById("results-tbody");
+        tbody.innerHTML = draftResults
+          .map((r) => {
+            const team = TEAMS[r.team];
+            const p = r.prospect;
+            const grade = pickGrade(r.pick, p.rank);
+            return `<tr class="result-row">
+      <td class="pick-num-cell">${r.pick}</td>
+      <td>
+        <div class="team-cell">
+          ${logoImg(team.logo, team.abbrev, true)}
+          <span class="team-abbrev">${team.abbrev}</span>
+        </div>
+      </td>
+      <td class="player-name-cell">${p.name}</td>
+      <td><span class="pos-badge ${getPosClass(p.pos)}">${p.pos}</span></td>
+      <td class="college-cell">${p.college}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap;">${p.ht} / ${p.wt}</td>
+      <td><span class="grade-cell ${grade.cls}">${grade.label}</span></td>
+    </tr>`;
+          })
+          .join("");
+
+        const now = new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        document.getElementById("results-footer").textContent =
+          `2026 NFL Mock Draft · Round 1 · ${now} · Data: Drafttek.com / NFL.com`;
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function printResults() {
+        window.print();
+      }
+
+      function resetDraft() {
+        if (!confirm("Start over? All picks will be lost.")) return;
+        currentPickIdx = 0;
+        pickedIds = new Set();
+        draftResults = [];
+        activeFilter = "ALL";
+        document.getElementById("results-screen").style.display = "none";
+        document.getElementById("pick-screen").style.display = "grid";
+        document.getElementById("pick-counter").innerHTML = 'Pick <b id="cur-pick">1</b> / 32';
+        renderPickScreen();
+      }
+
+      // ─────────────────────────────────────────────
+      //  PRINT STYLES
+      // ─────────────────────────────────────────────
+      const printStyle = document.createElement("style");
+      printStyle.textContent = `
+@media print {
+  header, #progress-bar, .results-actions, #pick-screen { display:none!important; }
+  body { background:#fff!important; color:#000!important; }
+  #results-screen { display:block!important; }
+  .results-title { color:#000!important; }
+  .results-sub { color:#666!important; }
+  #results-table-wrap { border:1px solid #ccc!important; border-radius:0!important; }
+  table { border-collapse:collapse; }
+  th, td { border-bottom:1px solid #eee!important; color:#000!important; }
+  thead { background:#f5f5f5!important; border-bottom:2px solid #000!important; }
+  .pick-num-cell { color:#000!important; }
+  .team-abbrev { color:#000!important; }
+  .player-name-cell { color:#000!important; }
+  .college-cell { color:#555!important; }
+  .pos-badge { background:#eee!important; color:#000!important; border:1px solid #ccc; }
+  .grade-cell { background:#eee!important; color:#000!important; }
+  .results-footer { color:#666!important; border-top:1px solid #ccc!important; }
+  .team-logo-sm-placeholder { background:#eee!important; color:#000!important; }
+  #results-table-wrap { background:#fff!important; }
+}`;
+      document.head.appendChild(printStyle);
+
+      // ─────────────────────────────────────────────
+      //  INIT
+      // ─────────────────────────────────────────────
+      renderPickScreen();
+    </script>
+  </body>
+</html>
